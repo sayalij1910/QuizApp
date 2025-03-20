@@ -1,18 +1,18 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
-import QuizSettings from "./pages/QuizSettings";
 import Quiz from "./pages/Quiz";
 import Result from "./pages/Result";
+import Review from "./pages/Review";
 
 function App() {
   return (
     <Router>
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-500 text-white p-6">
+      <div className="bg-gray-900 min-h-screen flex flex-col items-center justify-center">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/settings" element={<QuizSettings />} />
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/result" element={<Result />} />
+          <Route path="/review" element={<Review />} />
         </Routes>
       </div>
     </Router>

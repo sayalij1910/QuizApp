@@ -5,100 +5,133 @@ import axios from "axios";
 const Quiz = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { difficulty, category } = location.state || { difficulty: "easy", category: "9" };
+  const queryParams = new URLSearchParams(location.search);
+  const category = queryParams.get("category") || "9";
+  const difficulty = queryParams.get("difficulty") || "easy";
 
+  const [quizStartTime] = useState(Date.now()); // Store quiz start time
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(30);
-  const [questionAnswered, setQuestionAnswered] = useState(false);
+  const [userAnswers, setUserAnswers] = useState([]);
 
+  // Fetch questions from API
   useEffect(() => {
-    axios.get(`https://opentdb.com/api.php?amount=10&category=${category}&difficulty=${difficulty}&type=multiple`)
-      .then(response => {
+    axios
+      .get(
+        `https://opentdb.com/api.php?amount=10&category=${category}&difficulty=${difficulty}&type=multiple`
+      )
+      .then((response) => {
         const formattedQuestions = response.data.results.map((q, index) => ({
           id: index,
           question: q.question,
-          options: [...q.incorrect_answers, q.correct_answer].sort(() => Math.random() - 0.5),
-          correct: q.correct_answer
+          options: [...q.incorrect_answers, q.correct_answer].sort(
+            () => Math.random() - 0.5
+          ),
+          correct: q.correct_answer,
         }));
         setQuestions(formattedQuestions);
       })
-      .catch(error => console.error("Error fetching quiz:", error));
-  }, [difficulty, category]);
+      .catch((error) => console.error("Error fetching quiz:", error));
+  }, [category, difficulty]);
 
+  // Timer effect for each question
   useEffect(() => {
-    if (!questionAnswered && timeLeft > 0) {
-      const timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
+    if (timeLeft > 0) {
+      const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
       return () => clearInterval(timer);
-    } else if (timeLeft === 0) {
-      setQuestionAnswered(true);
+    } else {
+      handleNext();
     }
-  }, [timeLeft, questionAnswered]);
+  }, [timeLeft]);
 
   const handleAnswer = (answer) => {
     setSelectedAnswer(answer);
-    setQuestionAnswered(true);
-    if (answer === questions[currentIndex].correct) {
-      setScore(score + 1);
-    }
+    setUserAnswers((prevAnswers) => [
+      ...prevAnswers,
+      {
+        question: questions[currentIndex].question,
+        selected: answer,
+        correct: questions[currentIndex].correct,
+      },
+    ]);
   };
 
   const handleNext = () => {
+    if (selectedAnswer === null) {
+      alert("Please select an answer before proceeding.");
+      return;
+    }
+
     if (currentIndex === questions.length - 1) {
-      navigate("/result", { state: { score, total: questions.length } });
+      const totalTime = Math.floor((Date.now() - quizStartTime) / 1000); // Calculate total time in seconds
+      navigate("/result", {
+        state: { userAnswers, totalTime },
+      });
     } else {
-      setCurrentIndex(currentIndex + 1);
+      setCurrentIndex((prevIndex) => prevIndex + 1);
       setSelectedAnswer(null);
       setTimeLeft(30);
-      setQuestionAnswered(false);
     }
   };
 
-  if (questions.length === 0) return <div className="text-xl font-bold text-center animate-spin">Loading Quiz...</div>;
+  if (questions.length === 0)
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-[#0F172A] to-[#1E293B]">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+      </div>
+    );
 
   return (
-    <div className="max-w-lg mx-auto mt-10 bg-white p-6 rounded-xl shadow-lg text-center text-black">
-     
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">Question {currentIndex + 1} / {questions.length}</h2>
-        <div className={`font-bold ${timeLeft <= 5 ? "text-red-500" : "text-gray-700"}`}>⏳ {timeLeft}s</div>
-      </div>
-
-  
-      <h2 className="text-xl font-bold text-blue-600 mb-4" dangerouslySetInnerHTML={{ __html: questions[currentIndex].question }} />
-
-     
-      <div className="grid gap-3">
-        {questions[currentIndex].options.map((option, i) => (
-          <button 
-            key={i}
-            onClick={() => handleAnswer(option)}
-            disabled={questionAnswered}
-            className={`px-4 py-3 border rounded-lg transition-all duration-300 font-semibold ${
-              questionAnswered
-                ? option === questions[currentIndex].correct
-                  ? "bg-green-500 text-white"  
-                  : option === selectedAnswer
-                  ? "bg-red-500 text-white"    
-                  : "bg-gray-300 text-black"
-                : "bg-gray-200 hover:bg-gray-300"
+    <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0F172A] to-[#1E293B] overflow-hidden">
+      {/* Quiz Container */}
+      <div className="relative w-full max-w-2xl bg-[#161B22] p-8 min-h-[350px] rounded-xl shadow-2xl border border-blue-500 animate-glow">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold text-white">
+            Question {currentIndex + 1} / {questions.length}
+          </h2>
+          <div
+            className={`font-bold text-lg ${
+              timeLeft <= 5 ? "text-red-500 animate-pulse" : "text-green-400"
             }`}
-            dangerouslySetInnerHTML={{ __html: option }}
-          />
-        ))}
-      </div>
+          >
+            ⏳ {timeLeft}s
+          </div>
+        </div>
 
+        {/* Question */}
+        <h2
+          className="text-2xl font-bold text-blue-400 mb-6 p-4 rounded-md border border-blue-500"
+          dangerouslySetInnerHTML={{ __html: questions[currentIndex].question }}
+        />
 
-     
-        <button 
-          onClick={handleNext} 
-          className="mt-6 px-6 py-3 bg-blue-500 text-white rounded-lg text-lg font-semibold hover:bg-blue-600 transition-all duration-300 shadow-md hover:shadow-lg"
+        {/* Options */}
+        <div className="grid gap-4">
+          {questions[currentIndex].options.map((option, i) => (
+            <button
+              key={i}
+              onClick={() => handleAnswer(option)}
+              className={`px-5 py-3 border-2 rounded-lg transition-all duration-300 font-semibold text-lg w-full
+                ${
+                  selectedAnswer === option
+                    ? "bg-blue-500 text-black border-blue-500 shadow-glow-blue"
+                    : "bg-transparent text-white border-blue-500 hover:bg-blue-500 hover:text-black shadow-glow-blue"
+                }`}
+              dangerouslySetInnerHTML={{ __html: option }}
+            />
+          ))}
+        </div>
+
+        {/* Next Button */}
+        <button
+          onClick={handleNext}
+          className="mt-6 px-6 py-3 bg-blue-500 text-white rounded-lg text-lg font-semibold hover:bg-blue-600 transition-all duration-300 shadow-glow-blue w-full"
         >
           {currentIndex === questions.length - 1 ? "Finish" : "Next"}
         </button>
-      
+      </div>
     </div>
   );
 };

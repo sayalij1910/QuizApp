@@ -8,7 +8,8 @@ const Home = () => {
   const [category, setCategory] = useState(9);
 
   useEffect(() => {
-    axios.get("https://opentdb.com/api_category.php")
+    axios
+      .get("https://opentdb.com/api_config.php")
       .then((response) => {
         setCategories(response.data.trivia_categories);
       })
@@ -18,42 +19,54 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="max-w-lg mx-auto p-6 bg-white  shadow-lg rounded-lg text-center">
-      <h2 className="text-3xl font-bold text-blue-600 mb-4">Select Your Quiz 🎯</h2>
-        <div className="mb-5 relative">
-          <label className="block text-gray-700 font-semibold mb-2">📚 Select Category</label>
-          <select 
-            className="w-full p-3 border border-gray-300 rounded-lg text-gray-800 bg-gray-50 shadow-sm focus:ring-2 focus:ring-blue-500 transition"
+    <div className="min-h-screen flex items-center justify-center bg-gray-900">
+      {/* Quiz Container */}
+      <div className="w-full max-w-md p-8 bg-gray-800 shadow-lg rounded-lg space-y-6 border border-blue-500/50 shadow-blue-500/30">
+        {/* Title */}
+        <h2 className="text-3xl font-bold text-blue-400 text-center animate-pulse">
+          Select Your Quiz 🎯
+        </h2>
+
+        {/* Category Selection */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-blue-300">📚 Category</label>
+          <select
+            className="w-full px-4 py-3 border border-blue-500 bg-gray-900 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent shadow-md shadow-blue-500/20"
             onChange={(e) => setCategory(e.target.value)}
           >
             <option value="">Select Category</option>
-            {categories.map(cat => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
             ))}
           </select>
         </div>
 
-       
-        <div className="mb-6 relative">
-          <label className="block text-gray-700 font-semibold mb-2">⚡ Select Difficulty</label>
-          <select 
-            className="w-full p-3 border border-gray-300 rounded-lg text-gray-800 bg-gray-50 shadow-sm focus:ring-2 focus:ring-blue-500 transition"
+        {/* Difficulty Selection */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-blue-300">⚡ Difficulty</label>
+          <select
+            className="w-full px-4 py-3 border border-blue-500 bg-gray-900 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent shadow-md shadow-blue-500/20"
             onChange={(e) => setDifficulty(e.target.value)}
           >
-            <option value="easy">Easy </option>
-            <option value="medium">Medium </option>
-            <option value="hard">Hard </option>
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
           </select>
         </div>
 
-    
-        <Link to={`/quiz?category=${category}&difficulty=${difficulty}`}>
-          <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow-md transition duration-300 transform hover:scale-105 hover:shadow-xl">
+        {/* Start Quiz Button */}
+        <Link
+          to={`/quiz?category=${category}&difficulty=${difficulty}`}
+          className="block w-full"
+        >
+          <button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-md transition duration-300 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50">
             🚀 Start Quiz
           </button>
         </Link>
       </div>
-  
+    </div>
   );
 };
 
