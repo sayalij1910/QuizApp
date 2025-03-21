@@ -8,15 +8,27 @@ const Home = () => {
   const [category, setCategory] = useState(9);
 
   useEffect(() => {
-    axios
-      .get("https://opentdb.com/api_config.php")
-      .then((response) => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get("https://opentdb.com/api_category.php");
         setCategories(response.data.trivia_categories);
-      })
-      .catch((error) => {
-        console.error("Error fetching categories:", error);
-      });
+      } catch (error) {
+        if (error.response) {
+          // Server responded with a status other than 2xx
+          console.error("Error response:", error.response.data);
+        } else if (error.request) {
+          // Request was made but no response received
+          console.error("Error request:", error.request);
+        } else {
+          // Something else happened
+          console.error("Error message:", error.message);
+        }
+      }
+    };
+  
+    fetchCategories();
   }, []);
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
