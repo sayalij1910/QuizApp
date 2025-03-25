@@ -36,7 +36,7 @@ const Home = () => {
       <div className="w-full max-w-md p-8 bg-gray-800 shadow-lg rounded-lg space-y-6 border border-blue-500/50 shadow-blue-500/30">
         {/* Title */}
         <h2 className="text-3xl font-bold text-blue-400 text-center animate-pulse">
-          Select Your Quiz 🎯
+          Select  Quiz 🎯
         </h2>
 
         {/* Category Selection */}
